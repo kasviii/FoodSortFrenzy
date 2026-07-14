@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.IO;
+using System.Collections.Generic;
 
 public class GameBoard : MonoBehaviour
 {
@@ -7,6 +8,23 @@ public class GameBoard : MonoBehaviour
     public Transform boardParent;
 
     private LevelData currentLevel;
+
+    // Color map for food types
+    private Dictionary<string, Color> foodColors = new Dictionary<string, Color>()
+    {
+        { "F01", new Color(0.8f, 0.3f, 0.1f) },  // Kebab - orange brown
+        { "F02", new Color(1f, 0.9f, 0.1f) },      // Corn - yellow
+        { "F03", new Color(0.2f, 0.2f, 0.2f) },    // Burger - dark brown
+        { "F04", new Color(0.7f, 0.2f, 0.2f) },    // Sausage - red
+        { "F05", new Color(0.2f, 0.7f, 0.2f) },    // Pepper - green
+        { "F06", new Color(0.8f, 0.7f, 0.5f) },    // Mushroom - beige
+        { "D01", new Color(1f, 0.4f, 0.7f) },      // Donut - pink
+        { "D02", new Color(0.9f, 0.9f, 1f) },      // Ice cream - white
+        { "D03", new Color(0.6f, 0.3f, 0.8f) },    // Cupcake - purple
+        { "D04", new Color(0.4f, 0.8f, 0.6f) },    // Macaron - mint
+        { "D05", new Color(1f, 0.5f, 0.2f) },      // Candy - orange
+        { "D06", new Color(0.9f, 0.2f, 0.3f) },    // Cake - red
+    };
 
     void Start()
     {
@@ -24,25 +42,29 @@ public class GameBoard : MonoBehaviour
 
         string json = File.ReadAllText(path);
         currentLevel = JsonUtility.FromJson<LevelData>(json);
-
         Debug.Log($"Loaded Level {currentLevel.level_id} | Rows: {currentLevel.rows} | Constraint: {currentLevel.constraint}");
-
         BuildBoard();
     }
 
     void BuildBoard()
     {
+        foreach (Transform child in boardParent)
+            Destroy(child.gameObject);
+
         for (int r = 0; r < currentLevel.rows; r++)
         {
             for (int s = 0; s < currentLevel.slots_per_row; s++)
             {
                 string foodType = currentLevel.board_layout[r].slots[s];
-
-                // Position each slot in a grid
                 Vector3 pos = new Vector3(s * 1.2f, -r * 1.2f, 0);
 
                 GameObject slot = Instantiate(foodSlotPrefab, pos, Quaternion.identity, boardParent);
                 slot.name = $"Slot_{r}_{s}_{foodType}";
+
+                // Set color based on food type
+                SpriteRenderer sr = slot.GetComponent<SpriteRenderer>();
+                if (sr != null && foodColors.ContainsKey(foodType))
+                    sr.color = foodColors[foodType];
             }
         }
 
