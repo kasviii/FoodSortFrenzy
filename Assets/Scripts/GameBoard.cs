@@ -65,6 +65,12 @@ public class GameBoard : MonoBehaviour
                 SpriteRenderer sr = slot.GetComponent<SpriteRenderer>();
                 if (sr != null && foodColors.ContainsKey(foodType))
                     sr.color = foodColors[foodType];
+
+                // Add FoodSlot component with data
+                FoodSlot fs = slot.AddComponent<FoodSlot>();
+                fs.foodType = foodType;
+                fs.row = r;
+                fs.col = s;
             }
         }
 
