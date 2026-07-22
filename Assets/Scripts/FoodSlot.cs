@@ -8,6 +8,7 @@ public class FoodSlot : MonoBehaviour
 
     private Vector3 originalPosition;
     private static FoodSlot draggedSlot = null;
+    private static Vector3 draggedOriginalPos;
     private static Camera mainCam;
 
     void Start()
@@ -18,69 +19,87 @@ public class FoodSlot : MonoBehaviour
 
     void Update()
     {
+        // Pick up
         if (Input.GetMouseButtonDown(0))
-            Debug.Log("Mouse clicked at: " + Input.mousePosition);
         {
-            Vector3 mouse3D = mainCam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, -mainCam.transform.position.z));
-            Vector2 mousePos = new Vector2(mouse3D.x, mouse3D.y);
-            if (GetComponent<Collider2D>().OverlapPoint(mousePos))
+            Vector2 mouseWorld = GetMouseWorld();
+            if (GetComponent<Collider2D>().OverlapPoint(mouseWorld))
             {
                 draggedSlot = this;
-                originalPosition = transform.position;
+                draggedOriginalPos = transform.position;
             }
         }
 
+        // Drag
         if (Input.GetMouseButton(0) && draggedSlot == this)
         {
-            Vector3 mousePos = mainCam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, -mainCam.transform.position.z));
-            mousePos.z = 0;
-            transform.position = mousePos;
+            Vector3 m = GetMouseWorld3D();
+            transform.position = m;
         }
 
+        // Drop
         if (Input.GetMouseButtonUp(0) && draggedSlot == this)
         {
-            Vector3 mouse3D = mainCam.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, -mainCam.transform.position.z));
-            Vector2 mousePos = new Vector2(mouse3D.x, mouse3D.y);
-            Collider2D[] hits = Physics2D.OverlapCircleAll(mousePos, 0.4f);
+            Vector2 mouseWorld = GetMouseWorld();
+            FoodSlot target = FindTarget(mouseWorld);
 
-            FoodSlot target = null;
-            foreach (var hit in hits)
+            if (target != null && target != this)
             {
-                FoodSlot other = hit.GetComponent<FoodSlot>();
-                if (other != null && other != this)
-                {
-                    target = other;
-                    break;
-                }
-            }
+                Vector3 posA = draggedOriginalPos;
+                Vector3 posB = target.originalPosition;
+                string typeA = this.foodType;
+                string typeB = target.foodType;
 
-            if (target != null)
-            {
-                // Swap colors
-                SpriteRenderer mySR = GetComponent<SpriteRenderer>();
-                SpriteRenderer targetSR = target.GetComponent<SpriteRenderer>();
-                Color tempColor = targetSR.color;
-                targetSR.color = mySR.color;
-                mySR.color = tempColor;
+                // Destroy both
+                Destroy(this.gameObject);
+                Destroy(target.gameObject);
 
-                // Swap food type data
-                string tempType = target.foodType;
-                target.foodType = this.foodType;
-                this.foodType = tempType;
+                // Respawn with swapped data
+                FindObjectOfType<GameBoard>().SpawnSlot(typeB, this.row, this.col, posA);
+                FindObjectOfType<GameBoard>().SpawnSlot(typeA, target.row, target.col, posB);
 
-                // Snap both to their grid positions
-                transform.position = target.originalPosition;
-                this.originalPosition = target.originalPosition;
+                FindObjectOfType<GameBoard>().CheckWinCondition();
 
-                target.transform.position = originalPosition;
-                target.originalPosition = originalPosition;
+                draggedSlot = null;
+                return;
             }
             else
             {
-                transform.position = originalPosition;
+                // Snap back to original
+                this.transform.position = draggedOriginalPos;
             }
 
             draggedSlot = null;
         }
+    }
+
+    FoodSlot FindTarget(Vector2 pos)
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(pos, 0.5f);
+        Debug.Log($"Drop pos: {pos} | Hits found: {hits.Length}");
+        foreach (var hit in hits)
+        {
+            FoodSlot fs = hit.GetComponent<FoodSlot>();
+            if (fs != null && fs != this)
+                return fs;
+        }
+        return null;
+    }
+
+    Vector2 GetMouseWorld()
+    {
+        Vector3 m = mainCam.ScreenToWorldPoint(
+            new Vector3(Input.mousePosition.x, Input.mousePosition.y,
+            Mathf.Abs(mainCam.transform.position.z)));
+        return new Vector2(m.x, m.y);
+    }
+
+    Vector3 GetMouseWorld3D()
+    {
+        Vector3 m = mainCam.ScreenToWorldPoint(
+            new Vector3(Input.mousePosition.x, Input.mousePosition.y,
+            Mathf.Abs(mainCam.transform.position.z)));
+        m.z = 0;
+        return m;
     }
 }

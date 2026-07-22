@@ -76,4 +76,67 @@ public class GameBoard : MonoBehaviour
 
         Debug.Log("Board built successfully.");
     }
+    public void CheckWinCondition()
+    {
+        int clearedRows = 0;
+
+        foreach (Transform rowParent in boardParent)
+        {
+            // Get all FoodSlot children
+        }
+
+        // We'll check per row using slot naming
+        bool[,] checked_ = new bool[currentLevel.rows, currentLevel.slots_per_row];
+
+        for (int r = 0; r < currentLevel.rows; r++)
+        {
+            string firstType = null;
+            bool rowComplete = true;
+            List<FoodSlot> rowSlots = new List<FoodSlot>();
+
+            foreach (Transform child in boardParent)
+            {
+                FoodSlot fs = child.GetComponent<FoodSlot>();
+                if (fs != null && fs.row == r)
+                    rowSlots.Add(fs);
+            }
+
+            if (rowSlots.Count == 0) continue;
+
+            firstType = rowSlots[0].foodType;
+            foreach (FoodSlot fs in rowSlots)
+            {
+                if (fs.foodType != firstType)
+                {
+                    rowComplete = false;
+                    break;
+                }
+            }
+
+            if (rowComplete)
+            {
+                clearedRows++;
+                foreach (FoodSlot fs in rowSlots)
+                    fs.GetComponent<SpriteRenderer>().color = Color.white;
+                Debug.Log($"Row {r} cleared!");
+            }
+        }
+
+        if (clearedRows == currentLevel.rows)
+            Debug.Log("LEVEL COMPLETE!");
+    }
+    public void SpawnSlot(string foodType, int row, int col, Vector3 pos)
+    {
+        GameObject slot = Instantiate(foodSlotPrefab, pos, Quaternion.identity, boardParent);
+        slot.name = $"Slot_{row}_{col}_{foodType}";
+
+        SpriteRenderer sr = slot.GetComponent<SpriteRenderer>();
+        if (sr != null && foodColors.ContainsKey(foodType))
+            sr.color = foodColors[foodType];
+
+        FoodSlot fs = slot.AddComponent<FoodSlot>();
+        fs.foodType = foodType;
+        fs.row = row;
+        fs.col = col;
+    }
 }
