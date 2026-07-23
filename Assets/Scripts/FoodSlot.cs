@@ -19,7 +19,6 @@ public class FoodSlot : MonoBehaviour
 
     void Update()
     {
-        // Pick up
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 mouseWorld = GetMouseWorld();
@@ -30,14 +29,12 @@ public class FoodSlot : MonoBehaviour
             }
         }
 
-        // Drag
         if (Input.GetMouseButton(0) && draggedSlot == this)
         {
             Vector3 m = GetMouseWorld3D();
             transform.position = m;
         }
 
-        // Drop
         if (Input.GetMouseButtonUp(0) && draggedSlot == this)
         {
             Vector2 mouseWorld = GetMouseWorld();
@@ -45,27 +42,27 @@ public class FoodSlot : MonoBehaviour
 
             if (target != null && target != this)
             {
-                Vector3 posA = draggedOriginalPos;
-                Vector3 posB = target.originalPosition;
+                int rowA = this.row;
+                int colA = this.col;
+                int rowB = target.row;
+                int colB = target.col;
                 string typeA = this.foodType;
                 string typeB = target.foodType;
+                Vector3 posA = draggedOriginalPos;
+                Vector3 posB = target.originalPosition;
 
-                // Destroy both
+                GameBoard board = FindObjectOfType<GameBoard>();
+
                 Destroy(this.gameObject);
                 Destroy(target.gameObject);
 
-                // Respawn with swapped data
-                FindObjectOfType<GameBoard>().SpawnSlot(typeB, this.row, this.col, posA);
-                FindObjectOfType<GameBoard>().SpawnSlot(typeA, target.row, target.col, posB);
+                board.SpawnSlot(typeB, rowA, colA, posA);
+                board.SpawnSlot(typeA, rowB, colB, posB);
 
-                FindObjectOfType<GameBoard>().CheckWinCondition();
-
-                draggedSlot = null;
-                return;
+                board.Invoke("CheckWinCondition", 0.1f);
             }
             else
             {
-                // Snap back to original
                 this.transform.position = draggedOriginalPos;
             }
 
@@ -76,7 +73,6 @@ public class FoodSlot : MonoBehaviour
     FoodSlot FindTarget(Vector2 pos)
     {
         Collider2D[] hits = Physics2D.OverlapCircleAll(pos, 0.5f);
-        Debug.Log($"Drop pos: {pos} | Hits found: {hits.Length}");
         foreach (var hit in hits)
         {
             FoodSlot fs = hit.GetComponent<FoodSlot>();

@@ -7,23 +7,22 @@ public class GameBoard : MonoBehaviour
     public GameObject foodSlotPrefab;
     public Transform boardParent;
 
-    private LevelData currentLevel;
+    public LevelData currentLevel;
 
-    // Color map for food types
     private Dictionary<string, Color> foodColors = new Dictionary<string, Color>()
     {
-        { "F01", new Color(0.8f, 0.3f, 0.1f) },  // Kebab - orange brown
-        { "F02", new Color(1f, 0.9f, 0.1f) },      // Corn - yellow
-        { "F03", new Color(0.2f, 0.2f, 0.2f) },    // Burger - dark brown
-        { "F04", new Color(0.7f, 0.2f, 0.2f) },    // Sausage - red
-        { "F05", new Color(0.2f, 0.7f, 0.2f) },    // Pepper - green
-        { "F06", new Color(0.8f, 0.7f, 0.5f) },    // Mushroom - beige
-        { "D01", new Color(1f, 0.4f, 0.7f) },      // Donut - pink
-        { "D02", new Color(0.9f, 0.9f, 1f) },      // Ice cream - white
-        { "D03", new Color(0.6f, 0.3f, 0.8f) },    // Cupcake - purple
-        { "D04", new Color(0.4f, 0.8f, 0.6f) },    // Macaron - mint
-        { "D05", new Color(1f, 0.5f, 0.2f) },      // Candy - orange
-        { "D06", new Color(0.9f, 0.2f, 0.3f) },    // Cake - red
+        { "F01", new Color(0.8f, 0.3f, 0.1f) },
+        { "F02", new Color(1f, 0.9f, 0.1f) },
+        { "F03", new Color(0.2f, 0.2f, 0.2f) },
+        { "F04", new Color(0.7f, 0.2f, 0.2f) },
+        { "F05", new Color(0.2f, 0.7f, 0.2f) },
+        { "F06", new Color(0.8f, 0.7f, 0.5f) },
+        { "D01", new Color(1f, 0.4f, 0.7f) },
+        { "D02", new Color(0.9f, 0.9f, 1f) },
+        { "D03", new Color(0.6f, 0.3f, 0.8f) },
+        { "D04", new Color(0.4f, 0.8f, 0.6f) },
+        { "D05", new Color(1f, 0.5f, 0.2f) },
+        { "D06", new Color(0.9f, 0.2f, 0.3f) },
     };
 
     void Start()
@@ -46,10 +45,10 @@ public class GameBoard : MonoBehaviour
         BuildBoard();
     }
 
-    void BuildBoard()
+    public void BuildBoard()
     {
-        foreach (Transform child in boardParent)
-            Destroy(child.gameObject);
+        for (int i = boardParent.childCount - 1; i >= 0; i--)
+            DestroyImmediate(boardParent.GetChild(i).gameObject);
 
         for (int r = 0; r < currentLevel.rows; r++)
         {
@@ -57,41 +56,42 @@ public class GameBoard : MonoBehaviour
             {
                 string foodType = currentLevel.board_layout[r].slots[s];
                 Vector3 pos = new Vector3(s * 1.2f, -r * 1.2f, 0);
-
-                GameObject slot = Instantiate(foodSlotPrefab, pos, Quaternion.identity, boardParent);
-                slot.name = $"Slot_{r}_{s}_{foodType}";
-
-                // Set color based on food type
-                SpriteRenderer sr = slot.GetComponent<SpriteRenderer>();
-                if (sr != null && foodColors.ContainsKey(foodType))
-                    sr.color = foodColors[foodType];
-
-                // Add FoodSlot component with data
-                FoodSlot fs = slot.AddComponent<FoodSlot>();
-                fs.foodType = foodType;
-                fs.row = r;
-                fs.col = s;
+                SpawnSlot(foodType, r, s, pos);
             }
         }
 
         Debug.Log("Board built successfully.");
     }
+
+    public void SpawnSlot(string foodType, int row, int col, Vector3 pos)
+    {
+        GameObject slot = Instantiate(foodSlotPrefab, pos, Quaternion.identity, boardParent);
+        slot.name = $"Slot_{row}_{col}_{foodType}";
+
+        SpriteRenderer sr = slot.GetComponent<SpriteRenderer>();
+        if (sr != null && foodColors.ContainsKey(foodType))
+            sr.color = foodColors[foodType];
+
+        FoodSlot fs = slot.GetComponent<FoodSlot>();
+        fs.foodType = foodType;
+        fs.row = row;
+        fs.col = col;
+    }
+
+    public Color GetFoodColor(string foodType)
+    {
+        if (foodColors.ContainsKey(foodType))
+            return foodColors[foodType];
+        return Color.white;
+    }
+
     public void CheckWinCondition()
     {
         int clearedRows = 0;
+        int totalRows = currentLevel.rows;
 
-        foreach (Transform rowParent in boardParent)
+        for (int r = 0; r < totalRows; r++)
         {
-            // Get all FoodSlot children
-        }
-
-        // We'll check per row using slot naming
-        bool[,] checked_ = new bool[currentLevel.rows, currentLevel.slots_per_row];
-
-        for (int r = 0; r < currentLevel.rows; r++)
-        {
-            string firstType = null;
-            bool rowComplete = true;
             List<FoodSlot> rowSlots = new List<FoodSlot>();
 
             foreach (Transform child in boardParent)
@@ -101,9 +101,15 @@ public class GameBoard : MonoBehaviour
                     rowSlots.Add(fs);
             }
 
-            if (rowSlots.Count == 0) continue;
+            if (rowSlots.Count != currentLevel.slots_per_row)
+            {
+                Debug.Log($"Row {r} skipped - slot count: {rowSlots.Count}");
+                continue;
+            }
 
-            firstType = rowSlots[0].foodType;
+            string firstType = rowSlots[0].foodType;
+            bool rowComplete = true;
+
             foreach (FoodSlot fs in rowSlots)
             {
                 if (fs.foodType != firstType)
@@ -116,27 +122,11 @@ public class GameBoard : MonoBehaviour
             if (rowComplete)
             {
                 clearedRows++;
-                foreach (FoodSlot fs in rowSlots)
-                    fs.GetComponent<SpriteRenderer>().color = Color.white;
-                Debug.Log($"Row {r} cleared!");
+                Debug.Log($"Row {r} CLEARED!");
             }
         }
 
-        if (clearedRows == currentLevel.rows)
+        if (clearedRows == totalRows)
             Debug.Log("LEVEL COMPLETE!");
-    }
-    public void SpawnSlot(string foodType, int row, int col, Vector3 pos)
-    {
-        GameObject slot = Instantiate(foodSlotPrefab, pos, Quaternion.identity, boardParent);
-        slot.name = $"Slot_{row}_{col}_{foodType}";
-
-        SpriteRenderer sr = slot.GetComponent<SpriteRenderer>();
-        if (sr != null && foodColors.ContainsKey(foodType))
-            sr.color = foodColors[foodType];
-
-        FoodSlot fs = slot.AddComponent<FoodSlot>();
-        fs.foodType = foodType;
-        fs.row = row;
-        fs.col = col;
     }
 }
