@@ -60,6 +60,7 @@ public class FoodSlot : MonoBehaviour
                 board.SpawnSlot(typeA, rowB, colB, posB);
 
                 board.Invoke("CheckWinCondition", 0.1f);
+                GameManager.Instance.UseMove();
             }
             else
             {

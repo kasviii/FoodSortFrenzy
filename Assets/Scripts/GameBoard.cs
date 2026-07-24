@@ -43,6 +43,7 @@ public class GameBoard : MonoBehaviour
         currentLevel = JsonUtility.FromJson<LevelData>(json);
         Debug.Log($"Loaded Level {currentLevel.level_id} | Rows: {currentLevel.rows} | Constraint: {currentLevel.constraint}");
         BuildBoard();
+        GameManager.Instance.StartLevel(currentLevel);
     }
 
     public void BuildBoard()
@@ -128,5 +129,6 @@ public class GameBoard : MonoBehaviour
 
         if (clearedRows == totalRows)
             Debug.Log("LEVEL COMPLETE!");
+            GameManager.Instance.LevelComplete();
     }
 }
