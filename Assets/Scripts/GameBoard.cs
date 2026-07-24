@@ -6,7 +6,6 @@ public class GameBoard : MonoBehaviour
 {
     public GameObject foodSlotPrefab;
     public Transform boardParent;
-
     public LevelData currentLevel;
 
     private Dictionary<string, Color> foodColors = new Dictionary<string, Color>()
@@ -88,6 +87,9 @@ public class GameBoard : MonoBehaviour
 
     public void CheckWinCondition()
     {
+        Debug.Log($"Total children in board: {boardParent.childCount}");
+        if (!GameManager.Instance.IsGameActive()) return;
+
         int clearedRows = 0;
         int totalRows = currentLevel.rows;
 
@@ -102,11 +104,7 @@ public class GameBoard : MonoBehaviour
                     rowSlots.Add(fs);
             }
 
-            if (rowSlots.Count != currentLevel.slots_per_row)
-            {
-                Debug.Log($"Row {r} skipped - slot count: {rowSlots.Count}");
-                continue;
-            }
+            if (rowSlots.Count != currentLevel.slots_per_row) continue;
 
             string firstType = rowSlots[0].foodType;
             bool rowComplete = true;
@@ -121,14 +119,13 @@ public class GameBoard : MonoBehaviour
             }
 
             if (rowComplete)
-            {
                 clearedRows++;
-                Debug.Log($"Row {r} CLEARED!");
-            }
         }
 
         if (clearedRows == totalRows)
+        {
             Debug.Log("LEVEL COMPLETE!");
             GameManager.Instance.LevelComplete();
+        }
     }
 }

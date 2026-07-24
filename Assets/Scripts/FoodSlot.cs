@@ -31,8 +31,7 @@ public class FoodSlot : MonoBehaviour
 
         if (Input.GetMouseButton(0) && draggedSlot == this)
         {
-            Vector3 m = GetMouseWorld3D();
-            transform.position = m;
+            transform.position = GetMouseWorld3D();
         }
 
         if (Input.GetMouseButtonUp(0) && draggedSlot == this)
@@ -42,24 +41,25 @@ public class FoodSlot : MonoBehaviour
 
             if (target != null && target != this)
             {
-                int rowA = this.row;
-                int colA = this.col;
-                int rowB = target.row;
-                int colB = target.col;
+                // Store all data before swap
                 string typeA = this.foodType;
                 string typeB = target.foodType;
-                Vector3 posA = draggedOriginalPos;
-                Vector3 posB = target.originalPosition;
+                Color colorA = this.GetComponent<SpriteRenderer>().color;
+                Color colorB = target.GetComponent<SpriteRenderer>().color;
+
+                // Swap food types and colors IN PLACE - no destroy/respawn
+                this.foodType = typeB;
+                this.GetComponent<SpriteRenderer>().color = colorB;
+
+                target.foodType = typeA;
+                target.GetComponent<SpriteRenderer>().color = colorA;
+
+                // Snap both back to their original grid positions
+                this.transform.position = draggedOriginalPos;
+                target.transform.position = target.originalPosition;
 
                 GameBoard board = FindObjectOfType<GameBoard>();
-
-                Destroy(this.gameObject);
-                Destroy(target.gameObject);
-
-                board.SpawnSlot(typeB, rowA, colA, posA);
-                board.SpawnSlot(typeA, rowB, colB, posB);
-
-                board.Invoke("CheckWinCondition", 0.1f);
+                board.CheckWinCondition();
                 GameManager.Instance.UseMove();
             }
             else

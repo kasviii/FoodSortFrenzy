@@ -23,18 +23,18 @@ public class GameManager : MonoBehaviour
     public void StartLevel(LevelData levelData)
     {
         constraint = levelData.constraint;
+        gameActive = true;
 
         if (constraint == "time")
         {
             timeRemaining = levelData.time_limit;
-            gameActive = true;
             if (movesText) movesText.gameObject.SetActive(false);
             if (timerText) timerText.gameObject.SetActive(true);
+            UpdateTimerUI();
         }
         else
         {
             movesRemaining = levelData.move_limit;
-            gameActive = false; // timer doesn't run
             if (timerText) timerText.gameObject.SetActive(false);
             if (movesText) movesText.gameObject.SetActive(true);
             UpdateMovesUI();
@@ -57,6 +57,11 @@ public class GameManager : MonoBehaviour
             gameActive = false;
             LevelFailed();
         }
+    }
+
+    public bool IsGameActive()
+    {
+        return gameActive;
     }
 
     void UpdateTimerUI()
@@ -84,19 +89,18 @@ public class GameManager : MonoBehaviour
     {
         gameActive = false;
         if (levelCompletePanel) levelCompletePanel.SetActive(true);
-        Debug.Log("Showing Level Complete Screen");
     }
 
     public void LevelFailed()
     {
         gameActive = false;
         if (levelFailPanel) levelFailPanel.SetActive(true);
-        Debug.Log("Showing Level Failed Screen");
     }
 
     public void RetryLevel()
     {
-        FindObjectOfType<GameBoard>().BuildBoard();
-        StartLevel(FindObjectOfType<GameBoard>().currentLevel);
+        GameBoard board = FindObjectOfType<GameBoard>();
+        board.BuildBoard();
+        StartLevel(board.currentLevel);
     }
 }
