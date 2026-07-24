@@ -29,7 +29,7 @@ public class GameBoard : MonoBehaviour
         LoadLevel(1);
     }
 
-    void LoadLevel(int levelId)
+    public void LoadLevel(int levelId)
     {
         string path = Path.Combine(Application.dataPath, "Levels", $"level_0{levelId}.json");
         if (!File.Exists(path))

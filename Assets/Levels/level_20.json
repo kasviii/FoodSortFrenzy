@@ -1,0 +1,14 @@
+{
+  "level_id": 20, "episode": 2, "constraint": "time",
+  "time_limit": 60, "move_limit": 0, "rows": 7, "slots_per_row": 6,
+  "food_types": ["D01", "D02", "D03", "D04", "D05", "D06"],
+  "board_layout": [
+    { "slots": ["D06", "D04", "D02", "D05", "D01", "D03"] },
+    { "slots": ["D01", "D03", "D05", "D02", "D06", "D04"] },
+    { "slots": ["D04", "D06", "D01", "D03", "D02", "D05"] },
+    { "slots": ["D02", "D05", "D03", "D06", "D04", "D01"] },
+    { "slots": ["D05", "D01", "D06", "D04", "D03", "D02"] },
+    { "slots": ["D03", "D02", "D04", "D01", "D05", "D06"] },
+    { "slots": ["D06", "D05", "D02", "D03", "D01", "D04"] }
+  ]
+}

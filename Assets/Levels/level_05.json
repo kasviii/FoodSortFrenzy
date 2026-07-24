@@ -1,0 +1,11 @@
+{
+  "level_id": 5, "episode": 1, "constraint": "moves",
+  "time_limit": 0, "move_limit": 20, "rows": 4, "slots_per_row": 5,
+  "food_types": ["F01", "F02", "F03", "F04"],
+  "board_layout": [
+    { "slots": ["F02", "F03", "F04", "F01", "F02"] },
+    { "slots": ["F01", "F04", "F02", "F03", "F01"] },
+    { "slots": ["F04", "F01", "F03", "F02", "F04"] },
+    { "slots": ["F03", "F02", "F01", "F04", "F03"] }
+  ]
+}

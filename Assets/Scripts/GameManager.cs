@@ -90,6 +90,15 @@ public class GameManager : MonoBehaviour
         gameActive = false;
         if (levelCompletePanel) levelCompletePanel.SetActive(true);
     }
+    public void NextLevel()
+    {
+        GameBoard board = FindObjectOfType<GameBoard>();
+        int nextLevel = board.currentLevel.level_id + 1;
+        if (nextLevel <= 20)
+            board.LoadLevel(nextLevel);
+        else
+            Debug.Log("Game Complete! All levels done.");
+    }
 
     public void LevelFailed()
     {
